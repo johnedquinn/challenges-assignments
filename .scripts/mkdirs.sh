@@ -1,6 +1,6 @@
 #!/bin/sh
 
-for i in $(seq 1 11); do
+for i in $(seq 0 11); do
     n=$(printf "%02d" $i)
     mkdir reading$n
 
