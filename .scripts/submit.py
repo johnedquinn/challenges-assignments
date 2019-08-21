@@ -43,9 +43,9 @@ def print_results(results):
 def submit_quiz(assignment, path):
     answers = None
 
-    for mod, ext in ((json, 'json'), (yaml, 'yaml')):
+    for mod_load, ext in ((json.load, 'json'), (yaml.safe_load, 'yaml')):
         try:
-            answers = mod.load(open(os.path.join(path, 'answers.' + ext)))
+            answers = mod_load(open(os.path.join(path, 'answers.' + ext)))
         except IOError as e:
             pass
         except Exception as e:
