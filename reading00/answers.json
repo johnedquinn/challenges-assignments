@@ -1,0 +1,20 @@
+{
+  "q1": [
+    "c",
+    "java",
+    "python",
+    "cpp"
+  ],
+  "q2": [
+    "1",
+    "logn",
+    "sqrtn",
+    "n",
+    "nlogn",
+    "n2",
+    "nf"
+  ],
+  "q3": "n2",
+  "q4": "nlogn"
+}
+
