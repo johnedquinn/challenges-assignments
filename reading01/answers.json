@@ -1,0 +1,30 @@
+{
+  "q1": [
+		"remove_list",
+		"insert_array",
+    "cache_list",
+    "remove_array"
+  ],
+  "q2": [
+    "push",
+    "pop",
+    "LIFO",
+    "FIFO"
+  ],
+  "q3": [
+    "stack",
+    "c.push(e)",
+    "v.clear()",
+    "!c.empty()",
+    "v.push_back(c.top())",
+    "c.pop()"
+  ],
+  "q4": [
+    "[]",
+    "c.append(e)",
+    "[]",
+    "len(c)",
+    "v.append(c.pop())",
+    "v"
+  ]
+}
