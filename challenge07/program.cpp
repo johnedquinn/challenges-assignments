@@ -12,8 +12,8 @@
 #include <map>
 using namespace std;
 
-/// Function: main
-/// Description: X
+/// Function: createPermutation
+/// Description: Creates permutations of length 5
 void createPermutation(string & num_str, vector <string> & v, set <char> & s) {
 	if (num_str.length() == 5) {
 		v.push_back(num_str);
@@ -30,6 +30,8 @@ void createPermutation(string & num_str, vector <string> & v, set <char> & s) {
 }
 
 
+/// Function: generateSecondNumber
+/// Description: Generates the string that the second number would be represented by
 string generateSecondNumber(int first, int goal) {
 	int second = first / goal;
 	string s;
@@ -42,6 +44,8 @@ string generateSecondNumber(int first, int goal) {
 	return s;
 }
 
+/// Function: checkIfUnique
+/// Description: Checks both numbers to see if either of them has duplicate numbers
 bool checkIfUnique(string s1, string s2) {
 	int n [10] = {0};
 	for (auto c : s1) {
@@ -57,11 +61,17 @@ bool checkIfUnique(string s1, string s2) {
 }
 
 
-/// Function: main
-/// Description: X
+/// Function: checkDivisions
+/// Description: Loop through permuations, and if that number is divisible by the goal, ...
+/// ... then create the possible second number and convert it to a string. Then check if ...
+/// ... both strings don't contain duplicates. If all checks out, print out the results. If no ...
+/// ... matches, print appropriate message.
 void checkDivisions(vector <string> & v, int goal, int & i) {
+	/* Fix spacing */
 	i++;
 	if (i > 1) cout << endl;
+
+	/* Search for match */
 	bool found = false;
 	for (auto e : v) {
 		if (stoi(e) % goal == 0) {
@@ -76,7 +86,7 @@ void checkDivisions(vector <string> & v, int goal, int & i) {
 }
 
 /// Function: main
-/// Description: X
+/// Description: Main driver. Take a number from user and check the permutations vector for matches.
 int main(int argc, char * argv []) {
 
 	set <char> s = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'};
