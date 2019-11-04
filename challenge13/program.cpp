@@ -83,7 +83,7 @@ Node * createBST(vector <int> & v, int low, int high) {
 // @name: createBST
 // @desc: X
 Node * createBST(vector <int> & v) {
-	return createBST(v, 0, v.size());
+	return createBST(v, 0, v.size()-1);
 }
 
 // @name: main
