@@ -15,8 +15,8 @@
 #include <algorithm>
 using namespace std;
 
-// @struct	:	findShortestPaths
-// @desc	:	uses Dijkstra's algorithm
+// @struct	:	Graph
+// @desc	:	For passing data around
 struct Graph {
 	vector <vector <char>> states;
 	unordered_map <int, int> path;
@@ -32,7 +32,6 @@ bool getInput(Graph & g) {
 	g.states.clear(); g.exits.clear();
 	if (cin >> g.rows >> g.cols && g.rows != 0 && g.cols != 0) {
 		g.rows += 2; g.cols += 2;
-		char c;
 
 		// Make top row all 1's
 		g.states.resize(g.cols);
@@ -48,6 +47,7 @@ bool getInput(Graph & g) {
 		// Insert information into matrix
 		for (size_t i = 1; i < g.rows - 1; i++) {
 			for (size_t j = 1; j < g.cols - 1; j++) {
+				char c;
 				cin >> c;
 				if (c == 'S') {
 					g.start = i * (g.cols) + j;
@@ -66,36 +66,37 @@ bool getInput(Graph & g) {
 	return false;
 }
 
-
-// @name	:	getAdjacents
-// @desc	:	returns adjacent cells with weights
+// @name	:	locationToCoordinates
+// @desc	:	Helpful to get access to where in the matrix it is
 pair <int, int> locationToCoordinates(Graph & g, int location) {
 	int col = location % g.cols;
 	int row;
-	for (int i = g.cols - 1; i > -1; i--) {
-		if (location >= g.cols * i) {
-			row = i;
-			break;
+	for (int i = 0; i < g.rows; i++) {
+		if (i*g.cols <= location && location < i*g.cols + g.cols) {
+			return make_pair(col, i);
 		}
 	}
-	return make_pair(col, row);
+	return make_pair(col, 1);
 }
 
+// @name	:	coordinatesToLocation
+// @desc	:	converting from the matrix to the distances vector locations
 int coordinatesToLocation(Graph & g, int col, int row) {
 	return row * g.cols + col;
 }
 
+// @name	:	coordinatesToLocation
+// @desc	:	converting from the matrix to the distances vector locations
 int coordinatesToLocation(Graph & g, pair <int, int> coord) {
 	int col = coord.first; int row = coord.second;
 	return coordinatesToLocation(g, col, row);
 }
 
-// @name	:	getAdjacents
+// @name	:	getWeightedAdjacents
 // @desc	:	returns adjacent cells with weights
 map <int, int> getWeightedAdjacents(Graph & g, pair <int, int> & coord) {
 	map <int, int> m;
 	int col = coord.first; int row = coord.second;
-	//cout << "IN WEIGHTED ADJ; col = " << col << "; row = " << row << endl;
 	if (g.states[col-1][row] == '0') m[coordinatesToLocation(g, col-1, row)] = 1;
 	if (g.states[col+1][row] == '0') m[coordinatesToLocation(g, col+1, row)] = 1;
 	if (g.states[col][row-1] == '0') m[coordinatesToLocation(g, col, row-1)] = 1;
@@ -107,48 +108,29 @@ map <int, int> getWeightedAdjacents(Graph & g, pair <int, int> & coord) {
 	return m;
 }
 
+// @name	:	getWeightedAdjacents
+// @desc	:	returns adjacent cells with weights
 map <int, int> getWeightedAdjacents(Graph & g, int location) {
-	//cout << "LOCATION: " << location << " ";
 	pair<int, int> coord = locationToCoordinates(g, location);
 	return getWeightedAdjacents(g, coord);
 }
 
-// @name	:	getAdjacents
-// @desc	:	returns adjacent cells with weights
-set <pair<int, int>> getAdjacents(Graph & g, pair <int, int> & coord) {
-	set <pair<int, int>> s;
-	int x = coord.first; int y = coord.second;
-	s.insert(make_pair(x-1, y));
-	s.insert(make_pair(x+1, y));
-	s.insert(make_pair(x, y-1));
-	s.insert(make_pair(x, y+1));
-	s.insert(make_pair(x-1, y-1));
-	s.insert(make_pair(x-1, y+1));
-	s.insert(make_pair(x+1, y-1));
-	s.insert(make_pair(x+1, y+1));
-	return s;
-}
-
-set <pair<int, int>> getAdjacents(Graph & g, int location) {
-	pair <int, int> coord = locationToCoordinates(g, location);
-	return getAdjacents(g, coord);
-}
-
+// @name	:	getNearestExit
+// @desc	:	determine what path to take
 int getNearestExit(Graph & g, vector <int> & distances) {
 	int shortest = INT_MAX;
 	int nearest = -1;
 	for (auto n : g.exits) {
-		//cout << "N: " << n << "; distance = " << distances[n];
 		if (distances[n] < shortest) {
 			shortest = distances[n];
 			nearest = n;
-			//cout << " updated";
 		}
-		//cout << endl;
 	}
 	return nearest;
 }
 
+// @name	:	convertLocation
+// @desc	:	convert location from matrix with surrounding 1s to without 1s
 int convertLocation(Graph & g, int location) {
 	pair <int, int> old = locationToCoordinates(g, location);
 	old.first -= 1; old.second -= 1;
@@ -158,65 +140,8 @@ int convertLocation(Graph & g, int location) {
 	return newLoc;
 }
 
-/*int getMin(Graph & g, vector <int> & distances, int location) {
-	int min = INT_MAX;
-	int min_index = g.rows*g.cols;
-	//cout << endl << "@@@@@@@@@@@@@@@@ LOCATION: " << location << "/" << convertLocation(g, location) << endl;
-	for (auto e: getAdjacents(g, location)) {
-		//cout << "@@ MIN = " << min << "; MIN_INDEX = " << min_index << "/" << convertLocation(g, min_index) << endl;
-		int dist = distances[coordinatesToLocation(g,e)];
-		int loc = coordinatesToLocation(g,e);
-		//cout << "   Evaluating: " << loc << "/" << convertLocation(g,loc) << "; VAL = " << dist << endl;
-		if (dist < min) {
-			min = dist;
-			//cout << "A) CHOOSING " << loc << "/" << convertLocation(g, loc) << "; VAL = " << dist << endl;
-			min_index = loc;
-		} else if (dist == min) {
-			if (convertLocation(g, loc) < convertLocation(g, min_index)) {
-				min_index = loc;
-				//cout << "B) CHOOSING " << loc << "/" << convertLocation(g, loc) << "; VAL = " << dist << endl;
-			}
-		}
-	}
-	return min_index;
-}*/
-
-int getMin(Graph & g, vector <int> & distances, int location) {
-	int min = INT_MAX;
-	int min_index = g.rows*g.cols;
-	//cout << endl << "@@@@@@@@@@@@@@@@ LOCATION: " << location << "/" << convertLocation(g, location) << endl;
-	for (auto e: getAdjacents(g, location)) {
-		//cout << "@@ MIN = " << min << "; MIN_INDEX = " << min_index << "/" << convertLocation(g, min_index) << endl;
-		int dist = distances[coordinatesToLocation(g,e)];
-		int loc = coordinatesToLocation(g,e);
-		//cout << "   Evaluating: " << loc << "/" << convertLocation(g,loc) << "; VAL = " << dist << endl;
-		if (dist < min) {
-			min = dist;
-			//cout << "A) CHOOSING " << loc << "/" << convertLocation(g, loc) << "; VAL = " << dist << endl;
-			min_index = loc;
-		} else if (dist == min) {
-			if (convertLocation(g, loc) < convertLocation(g, min_index)) {
-				min_index = loc;
-				//cout << "B) CHOOSING " << loc << "/" << convertLocation(g, loc) << "; VAL = " << dist << endl;
-			}
-		}
-	}
-	return min_index;
-}
-
-/*void printPath(Graph & g, vector <int> & distances, int exit) {
-	int current = exit;
-	stack <int> path;
-	while (current != g.start) {
-		int converted = convertLocation(g, current);
-		path.push(converted);
-		current = getMin(g, distances, current);
-	}
-	while (!path.empty()) {
-		cout << " " << path.top(); path.pop();
-	}
-}*/
-
+// @name	:	findShortestPaths
+// @desc	:	uses Dijkstra's algorithm
 stack <int> getPath(Graph & g, int exit) {
 	int current = exit;
 	stack <int> path;
@@ -227,6 +152,8 @@ stack <int> getPath(Graph & g, int exit) {
 	return path;
 }
 
+// @name	:	printPath
+// @desc	:	take in a path and output it
 void printPath(Graph & g, stack <int> & path) {
 	while (!path.empty()) {
 		cout << " " << convertLocation(g, path.top());
@@ -234,6 +161,8 @@ void printPath(Graph & g, stack <int> & path) {
 	}
 }
 
+// @name	:	printInfo
+// @desc	:	print information regarding the cost and path
 void printInfo(Graph & g, vector <int> & distances) {
 	int exit = getNearestExit(g, distances);
 	if (exit < 0) {
@@ -259,38 +188,33 @@ vector <int> findShortestPaths(Graph & g, int start) {
 
 	while (!frontier.empty()) {
 		int n = frontier.top().second; frontier.pop();
-		//cout << "TOP: " << n << "; VAL = " << distances[n] << endl;
 
 		if (marked.count(n)) continue;
 
 		marked.insert(n);
 
 		for (auto u : getWeightedAdjacents(g, n)) {
-			//cout << "u-first = " << u.first << "; u-second = " << u.second << endl;
 			if (distances[u.first] > distances[n] + u.second) {
 				g.path[u.first] = n;
 				distances[u.first] = distances[n] + u.second;
 				frontier.push(make_pair(distances[u.first], u.first));
 			} else if (distances[u.first] == distances[n] + u.second && n < g.path[u.first]) {
 				g.path[u.first] = n;
+				frontier.push(make_pair(distances[u.first], u.first));
 			}
 		}
 	}
-	//for (auto n : distances) cout << n << " "; cout << endl;
-	/*for (size_t row = 0; row < g.rows; row++) {
-		for (size_t col = 0; col < g.cols; col++)
-			cout << distances[coordinatesToLocation(g, col, row)] << " ";
-		cout << endl;
-	}*/
 	return distances;
 }
 
+// @name	:	findShortestPaths
+// @desc	:	uses Dijkstra's algorithm
 void getSolution(Graph & g) {
 	vector <int> distances = findShortestPaths(g, g.start);
-	/*if (g.start == -1) {
+	if (g.start == -1) {
 		cout << "Cost: 0 Path: None" << endl;
 		return;
-	}*/
+	}
 	printInfo(g, distances);
 }
 
@@ -303,4 +227,3 @@ int main(int argc, char * argv []) {
 	}
 	return 0;
 }
-
