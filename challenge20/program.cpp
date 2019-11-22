@@ -6,8 +6,6 @@
 /* PREAMBLE */
 #include <iostream>
 #include <vector>
-#include <string>
-#include <sstream>
 #include <map>
 #include <queue>
 #include <set>
@@ -15,7 +13,7 @@
 using namespace std;
 
 struct Graph {
-	map <int, set<pair <int, int>>> m;
+	map <int, map<int, int>> m;
 	int source; int target;
 };
 
@@ -30,64 +28,44 @@ bool getInput (Graph & g) {
 		for (size_t i = 0; i < connections; i++) {
 			int s, t, w;
 			cin >> s >> t >> w;
-			g.m[s].insert(make_pair(t, w));
-			g.m[t].insert(make_pair(s, w));
+			g.m[s][t] += w;
+			g.m[t][s] += w;
 		}
 		return true;
 	}
 	return false;
 }
 
-void subtractPairs(Graph & g, int min, int left, int right) {
-	//int scratch = 1000;
-	//cout << "MIN: " << min << endl;
-	auto it = find_if(g.m[left].begin(), g.m[left].end(), [right](const pair<int,int>& p ){ return p.first == right; });
-	if (it != g.m[left].end()) {
-		//cout << "FOUND" << endl;
-		int newWeight = (*it).second - min;
-        g.m[left].erase(it);
-		g.m[left].insert(make_pair(right, newWeight));
-	}
-	auto jt = find_if(g.m[right].begin(), g.m[right].end(), [left](const pair<int,int>& p){ return p.first == left; });
-	if (jt != g.m[right].end()) {
-		int newWeight = (*jt).second - min;
-        g.m[right].erase(jt);
-		g.m[right].insert(make_pair(left, newWeight));
-	}
-}
-
+// @func : findFloor
+// @desc : get min flow
 int findFloor (Graph & g, map <int, int> & m) {
 	int current = g.target; int next;
 	int min = INT_MAX;
 	while (current != g.source) {
 		next = m[current];
-		auto it = find_if(g.m[current].begin(), g.m[current].end(), [next](const pair<int,int>& p ){ return p.first == next; });
-		int weight = (*it).second;
+		int weight = g.m[current][next];
 		if (weight != 0 && weight < min) min = weight;
 		current = next;
 	}
-	//cout << "@@@@ MIN: " << min << endl;
 	return min;
 }
 
-// @func : getInput
-// @desc : X
+// @func : floorFlow
+// @desc : return min flow and decrease flow between vertices
 int floorFlow (Graph & g, map <int, int> & m) {
 	int min = findFloor(g, m);
 	int current = g.target; int next;
-	//cout << "MAP: ";
 	while (current != g.source) {
-		//cout << "--> " << current;
 		next = m[current];
-		subtractPairs(g, min, current, next);
+		g.m[current][next] -= min;
+		g.m[next][current] -= min;
 		current = next;
 	}
-	//cout << "--> " << next << endl;
 	return min;
 }
 
-// @func : getInput
-// @desc : X
+// @func : getPath
+// @desc : BFS to get path
 map <int, int> getPath (Graph & g) {
 	queue<int> frontier; frontier.push(g.source);
 	set <int> visited;
@@ -101,7 +79,6 @@ map <int, int> getPath (Graph & g) {
 
 		// Check if target
 		if (v == g.target) {
-			//path.push_back(v);
 			return path;
 		}
 
@@ -120,31 +97,31 @@ map <int, int> getPath (Graph & g) {
 	return empty;
 }
 
-// @func : main
-// @desc : X
+// @func : getSolution
+// @desc : Keep doing BFS till done and decrease flows
 int getSolution (Graph & g) {
 	map <int, int> path;
 	int sum = 0;
 
 	path = getPath(g);
 	while (path.find(g.target) != path.end()) {
-		//cout << "@@ LENGTH : " << path.size() << endl;
 		// Subtract min edge capacity from all edges in path
 		int floor = floorFlow(g, path);
 		sum += floor;
 
 		// Compute a path from source to sink
+		path.clear();
 		path = getPath(g);
 	}
 	return sum;
 }
 
 // @func : main
-// @desc : X
+// @desc : main driver
 int main(int argc, char * argv []) {
 	Graph g; size_t i = 1;
 	while (getInput(g)) {
-		cout << "Network: " << i++ << " Bandwidth: " << getSolution(g) << endl;
+		cout << "Network " << i++ << ": Bandwidth is " << getSolution(g) << "." << endl;
 	}
 	return 0;
 }
