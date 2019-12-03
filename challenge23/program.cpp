@@ -45,6 +45,8 @@ struct BigInt {
 			if (num >= 10) {
 				num = num - 10;
 				carry = 1;
+			} else {
+				carry = 0;
 			}
 			result.digits.push_back(num);
 			i++; a_i++;
@@ -91,8 +93,18 @@ struct BigInt {
 // @desc : multiplication
 BigInt operator * (int lhs, BigInt rhs) {
 	BigInt result;
-	for (auto e : rhs.digits)
-		result.digits.push_back(e *= lhs);
+	int num = 0; int carry = 0;
+	for (auto e : rhs.digits) {
+		num = e * lhs + carry;
+		if (num >= 10) {
+			carry = num / 10;
+			num = num % 10;
+		} else {
+			carry = 0;
+		}
+		result.digits.push_back(num);
+	}
+	if (carry) result.digits.push_back(carry);
 	return result;
 }
 
